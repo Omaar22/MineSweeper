@@ -1,38 +1,29 @@
 package omar.theperfectapp;
 
-import android.graphics.Color;
-import android.os.Handler;
+import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     static final int GRID_SIZE = 300;
-    static final int MINE_COUNT = 20;
+    static final int MINE_COUNT = 10;
     static final int COLUMN_COUNT = 15;
     static final int ROW_COUNT = GRID_SIZE / COLUMN_COUNT;
 
-    boolean hasMine[][] = new boolean[GRID_SIZE / COLUMN_COUNT][COLUMN_COUNT];
-    int board[][] = new int[GRID_SIZE / COLUMN_COUNT][COLUMN_COUNT];
-
-    int delta[][] = new int[][]{
-            {1, 0}, {0, 1}, {0, -1}, {-1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
-    };
-
-    boolean vis[][] = new boolean[GRID_SIZE / COLUMN_COUNT][COLUMN_COUNT];
+    static boolean hasMine[][] = new boolean[GRID_SIZE / COLUMN_COUNT][COLUMN_COUNT];
+    static int neighbors[][] = new int[GRID_SIZE / COLUMN_COUNT][COLUMN_COUNT];
+    static boolean isRevealed[][] = new boolean[GRID_SIZE / COLUMN_COUNT][COLUMN_COUNT];
     int revealedCounter = 0;
     boolean isActive = true;
+    int deltaXY[][] = new int[][]{{1, 0}, {0, 1}, {0, -1}, {-1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
 
     void generateBoard() {
         /* generate Mines */
@@ -51,12 +42,12 @@ public class MainActivity extends AppCompatActivity {
                 int neighbours = 0;
                 if (!hasMine[i][j]) {
                     for (int k = 0; k < 8; k++) {
-                        int X = i + delta[k][0];
-                        int Y = j + delta[k][1];
+                        int X = i + deltaXY[k][0];
+                        int Y = j + deltaXY[k][1];
                         if (0 <= X && X < GRID_SIZE / COLUMN_COUNT && 0 <= Y && Y < COLUMN_COUNT && hasMine[X][Y])
                             neighbours++;
                     }
-                    board[i][j] = neighbours;
+                    neighbors[i][j] = neighbours;
                 }
             }
         }
@@ -68,88 +59,79 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         final Chronometer timer = (Chronometer) findViewById(R.id.chronometer);
-        final int height = getBaseContext().getResources().getDisplayMetrics().heightPixels;
-        timer.setTextSize(height / 25f);
+        final int screenHeight = getBaseContext().getResources().getDisplayMetrics().heightPixels;
+        final int screenWidth = getBaseContext().getResources().getDisplayMetrics().widthPixels;
+
+        timer.setTextSize(screenHeight / 40);
         timer.start();
 
         final ImageView smiley = (ImageView) findViewById(R.id.smiley);
-        smiley.getLayoutParams().height = height / 10;
-        smiley.getLayoutParams().width = height / 10;
+        smiley.getLayoutParams().height = screenHeight / 10;
+        smiley.getLayoutParams().width = screenHeight / 10;
 
         generateBoard();
 
-        final GridView fields = (GridView) findViewById(R.id.fields);
+        final GridView fields = (GridView) findViewById(R.id.board);
         fields.setNumColumns(COLUMN_COUNT);
+
         fields.setAdapter(new ImageAdapter(this));
         fields.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
-                int X = position / COLUMN_COUNT;
-                int Y = position % COLUMN_COUNT;
+                int row = position / COLUMN_COUNT;
+                int column = position % COLUMN_COUNT;
 
-                if (!isActive || vis[X][Y])
+                if (!isActive || isRevealed[row][column])
                     return;
 
-                ImageView tmp = (ImageView) v;
-
-                if (hasMine[position / COLUMN_COUNT][position % COLUMN_COUNT]) {
-                    tmp.setImageResource(ImageAdapter.images[0]);
-                    tmp.setScaleType(ImageView.ScaleType.FIT_CENTER);
-
-                    smiley.setImageResource(R.drawable.vulnerable);
-
+                if (hasMine[row][column]) {
+                    ((ImageView) v).setImageResource(R.drawable.mine);
                     timer.stop();
                     findViewById(R.id.restart).setVisibility(View.VISIBLE);
                     isActive = false;
-                } else if (board[position / COLUMN_COUNT][position % COLUMN_COUNT] == 0) {
-                    floodFill(position / COLUMN_COUNT, position % COLUMN_COUNT, fields);
+                    changeSmiley(smiley);
                 } else {
-                    tmp.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                    tmp.setImageResource(ImageAdapter.images[board[position / COLUMN_COUNT][position % COLUMN_COUNT]]);
-                    vis[X][Y] = true;
-                    revealedCounter++;
+                    floodFill(row, column, fields);
                 }
 
                 if (revealedCounter == GRID_SIZE - MINE_COUNT) {
                     timer.stop();
                     findViewById(R.id.restart).setVisibility(View.VISIBLE);
                     isActive = false;
-                    smiley.setImageResource(R.drawable.stoned);
+                    changeSmiley(smiley);
                 }
             }
         });
 
+
+        Button restart = (Button) findViewById(R.id.restart);
+        restart.setTextSize(screenHeight / 30f);
     }
 
-
-    void floodFill(int X, int Y, GridView v) {
-        ImageView cell = (ImageView) v.getChildAt(X * COLUMN_COUNT + Y);
+    void floodFill(int X, int Y, GridView board) {
+        ImageView cell = (ImageView) board.getChildAt(X * COLUMN_COUNT + Y);
 
         if (0 <= X && X < ROW_COUNT && 0 <= Y && Y < COLUMN_COUNT) {
-            if (vis[X][Y])
+            if (hasMine[X][Y] || isRevealed[X][Y])
                 return;
+            isRevealed[X][Y] = true;
 
-            vis[X][Y] = true;
-
-            revealedCounter++;
-
-            if (board[X][Y] == 0) {
+            if (neighbors[X][Y] == 0) {
                 cell.setImageResource(R.drawable.clear);
-                cell.setImageAlpha(40);
                 for (int k = 0; k < 8; k++) {
-                    floodFill(X + delta[k][0], Y + delta[k][1], v);
+                    floodFill(X + deltaXY[k][0], Y + deltaXY[k][1], board);
                 }
             } else {
-                cell.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                cell.setImageResource(ImageAdapter.images[board[X][Y]]);
+                cell.setImageResource(ImageAdapter.numbers[neighbors[X][Y]]);
             }
+            revealedCounter++;
         }
     }
 
     public void restartButton(View view) {
+
         ImageView smiley = (ImageView) findViewById(R.id.smiley);
         smiley.setImageResource(R.drawable.salivating);
-
 
         view.setVisibility(View.INVISIBLE);
         isActive = true;
@@ -157,15 +139,61 @@ public class MainActivity extends AppCompatActivity {
 
         for (int i = 0; i < ROW_COUNT; i++)
             for (int j = 0; j < COLUMN_COUNT; j++)
-                hasMine[i][j] = vis[i][j] = false;
+                hasMine[i][j] = isRevealed[i][j] = false;
 
         generateBoard();
 
-        GridView fields = (GridView) findViewById(R.id.fields);
+        GridView fields = (GridView) findViewById(R.id.board);
         fields.setAdapter(new ImageAdapter(getBaseContext()));
 
         Chronometer timer = (Chronometer) findViewById(R.id.chronometer);
         timer.setBase(SystemClock.elapsedRealtime());
         timer.start();
     }
+
+    public void changeSmiley(View view) {
+        ImageView smiley = (ImageView) findViewById(R.id.smiley);
+        Object tag = smiley.getTag();
+
+        int newSmiley;
+        if (isActive) {
+            if (tag != null && (Integer) tag == R.drawable.mental)
+                newSmiley = R.drawable.stoned;
+            else if (tag != null && (Integer) tag == R.drawable.stoned)
+                newSmiley = R.drawable.salivating;
+            else
+                newSmiley = R.drawable.mental;
+            smiley.setTag(newSmiley);
+            smiley.setImageResource(newSmiley);
+        } else if (revealedCounter == GRID_SIZE - MINE_COUNT) {
+            if (tag != null && (Integer) tag == R.drawable.happy)
+                newSmiley = R.drawable.sunglasses;
+            else if (tag != null && (Integer) tag == R.drawable.sunglasses)
+                newSmiley = R.drawable.laughing;
+            else
+                newSmiley = R.drawable.happy;
+            smiley.setTag(newSmiley);
+            smiley.setImageResource(newSmiley);
+        } else {
+            if (tag != null && (Integer) tag == R.drawable.petrified)
+                newSmiley = R.drawable.crying;
+            else if (tag != null && (Integer) tag == R.drawable.vulnerable)
+                newSmiley = R.drawable.petrified;
+            else if (tag != null && (Integer) tag == R.drawable.crying)
+                newSmiley = R.drawable.horrified;
+            else
+                newSmiley = R.drawable.vulnerable;
+
+            smiley.setTag(newSmiley);
+            smiley.setImageResource(newSmiley);
+        }
+    }
 }
+
+// TODO: 25/04/2016  GUI Again // setup resolution
+// TODO: 25/04/2016  Add Flags and Question marks
+// TODO: 25/04/2016  Add difficulties
+// TODO: 25/04/2016  Scoring
+// TODO: 25/04/2016  Add some sounds
+// TODO: 25/04/2016  Create BOT with a remarkable name
+

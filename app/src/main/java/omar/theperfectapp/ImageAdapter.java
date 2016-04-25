@@ -8,20 +8,35 @@ import android.widget.GridView;
 import android.widget.ImageView;
 
 public class ImageAdapter extends BaseAdapter {
+    // references to our numbers
+    public static Integer[] numbers = {
+            R.drawable.clear,
+            R.drawable.number_1,
+            R.drawable.number_2,
+            R.drawable.number_3,
+            R.drawable.number_4,
+            R.drawable.number_5,
+            R.drawable.number_6,
+            R.drawable.number_7,
+            R.drawable.number_8,
+    };
     private Context mContext;
 
     public ImageAdapter(Context c) {
         mContext = c;
     }
 
+    @Override
     public int getCount() {
         return MainActivity.GRID_SIZE;
     }
 
+    @Override
     public Object getItem(int position) {
         return null;
     }
 
+    @Override
     public long getItemId(int position) {
         return 0;
     }
@@ -33,34 +48,29 @@ public class ImageAdapter extends BaseAdapter {
             // if it's not recycled, initialize some attributes
             imageView = new ImageView(mContext);
 
-
             final int width = mContext.getResources().getDisplayMetrics().widthPixels;
             final int height = mContext.getResources().getDisplayMetrics().heightPixels;
 
-            imageView.setLayoutParams(new GridView.LayoutParams(width / (MainActivity.COLUMN_COUNT + 1), height / (MainActivity.ROW_COUNT + 14)));
-            imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-
+            imageView.setLayoutParams(new GridView.LayoutParams(width / (MainActivity.COLUMN_COUNT), height / (MainActivity.ROW_COUNT + 10)));
+            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            imageView.setImageResource(R.drawable.field);
         } else {
             imageView = (ImageView) convertView;
+            int row = position / MainActivity.COLUMN_COUNT;
+            int column = position % MainActivity.COLUMN_COUNT;
+
+            if (MainActivity.isRevealed[row][column]) {
+                if (MainActivity.hasMine[row][column])
+                    imageView.setImageResource(R.drawable.mine);
+                else
+                    imageView.setImageResource(numbers[MainActivity.neighbors[row][column]]);
+            } else {
+                imageView.setImageResource(R.drawable.field);
+            }
         }
 
-        imageView.setImageResource(R.drawable.field);
         return imageView;
     }
-
-    // references to our images
-    public static Integer[] images = {
-            R.drawable.mine,
-            R.drawable.number_1_outline,
-            R.drawable.number_2_outline,
-            R.drawable.number_3_outline,
-            R.drawable.number_4_outline,
-            R.drawable.number_5_outline,
-            R.drawable.number_6_outline,
-            R.drawable.number_7_outline,
-            R.drawable.number_8_outline,
-            R.drawable.field,
-    };
 
 
 }

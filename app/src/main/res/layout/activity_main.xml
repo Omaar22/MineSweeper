@@ -10,18 +10,26 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="omar.theperfectapp.MainActivity">
 
+
     <Chronometer
         android:id="@+id/chronometer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true" />
+        android:layout_alignParentTop="true"
+        android:shadowColor="#000000"
+        android:shadowDx="4"
+        android:shadowDy="4"
+        android:shadowRadius="5"
+        android:textColor="#ffffff"
+        android:typeface="serif" />
 
     <GridView
-        android:id="@+id/fields"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/chronometer"
+        android:id="@+id/board"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/smiley"
+        android:layout_margin="20dp"
         android:gravity="center"
         android:horizontalSpacing="0dp"
         android:stretchMode="spacingWidthUniform"
@@ -30,8 +38,7 @@
     <Button
         android:id="@+id/restart"
         style="@style/buttonStyle"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
+        android:layout_below="@id/board"
         android:onClick="restartButton"
         android:text="@string/Restart"
         android:visibility="invisible" />
@@ -40,9 +47,9 @@
         android:id="@+id/smiley"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/salivating"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
-
+        android:layout_centerHorizontal="true"
+        android:onClick="changeSmiley"
+        android:src="@drawable/salivating" />
 
 </RelativeLayout>
