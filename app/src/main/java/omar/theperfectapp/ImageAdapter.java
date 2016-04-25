@@ -9,14 +9,13 @@ import android.widget.ImageView;
 
 public class ImageAdapter extends BaseAdapter {
     private Context mContext;
-    final int GRID_SIZE = 300;
 
     public ImageAdapter(Context c) {
         mContext = c;
     }
 
     public int getCount() {
-        return GRID_SIZE;
+        return MainActivity.GRID_SIZE;
     }
 
     public Object getItem(int position) {
@@ -38,8 +37,8 @@ public class ImageAdapter extends BaseAdapter {
             final int width = mContext.getResources().getDisplayMetrics().widthPixels;
             final int height = mContext.getResources().getDisplayMetrics().heightPixels;
 
-            imageView.setLayoutParams(new GridView.LayoutParams(width / (MainActivity.COLUMN_SIZE + 2), width / (MainActivity.COLUMN_SIZE + 2)));
-            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            imageView.setLayoutParams(new GridView.LayoutParams(width / (MainActivity.COLUMN_COUNT + 1), height / (MainActivity.ROW_COUNT + 14)));
+            imageView.setScaleType(ImageView.ScaleType.FIT_XY);
 
         } else {
             imageView = (ImageView) convertView;
