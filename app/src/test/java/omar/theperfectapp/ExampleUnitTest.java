@@ -1,4 +1,4 @@
-package omar.theperfectapp;
+package omar.ThePerfectApp;
 
 import org.junit.Test;
 
