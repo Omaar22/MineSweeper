@@ -1,4 +1,4 @@
-package omar.theperfectapp;
+package omar.Minesweeper;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

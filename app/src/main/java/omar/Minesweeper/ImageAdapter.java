@@ -1,4 +1,4 @@
-package omar.theperfectapp;
+package omar.Minesweeper;
 
 import android.content.Context;
 import android.view.View;
@@ -8,7 +8,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 
 public class ImageAdapter extends BaseAdapter {
-    // references to our numbers
+    // references to my numbers and clear field
     public static Integer[] numbers = {
             R.drawable.clear,
             R.drawable.number_1,
@@ -48,13 +48,14 @@ public class ImageAdapter extends BaseAdapter {
             // if it's not recycled, initialize some attributes
             imageView = new ImageView(mContext);
 
-            final int width = mContext.getResources().getDisplayMetrics().widthPixels;
-            final int height = mContext.getResources().getDisplayMetrics().heightPixels;
+            final int layoutWidth = mContext.getResources().getDisplayMetrics().widthPixels - 16; // padding 16
+            final int layoutHeight = mContext.getResources().getDisplayMetrics().heightPixels - 16; // padding 16
 
-            imageView.setLayoutParams(new GridView.LayoutParams(width / (MainActivity.COLUMN_COUNT), height / (MainActivity.ROW_COUNT + 10)));
+            imageView.setLayoutParams(new GridView.LayoutParams(layoutWidth / (MainActivity.COLUMN_COUNT), layoutHeight / (MainActivity.ROW_COUNT + 8)));
             imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
             imageView.setImageResource(R.drawable.field);
         } else {
+            // recycled by scrolling or keyboard appearance
             imageView = (ImageView) convertView;
             int row = position / MainActivity.COLUMN_COUNT;
             int column = position % MainActivity.COLUMN_COUNT;

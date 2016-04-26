@@ -1,4 +1,4 @@
-package omar.ThePerfectApp;
+package omar.Minesweeper;
 
 import org.junit.Test;
 
