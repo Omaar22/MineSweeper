@@ -132,10 +132,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
     protected void onCreate(final Bundle savedInstanceState) {
         /* Hide the status bar. */
         final View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
+
         decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
             @Override
             public void onSystemUiVisibilityChange(int visibility) {
@@ -146,11 +152,14 @@ public class MainActivity extends AppCompatActivity {
                         public void run() {
                             // Actions to do after 1 second
                             decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
+
+
                         }
                     }, 1000);
                 }
             }
         });
+
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -263,9 +272,9 @@ public class MainActivity extends AppCompatActivity {
 }
 
 // TODO: 25/04/2016  GUI Again => setup resolution
-// TODO: 26/04/2016 save flags state when keyboard shows
-// TODO: 26/04/2016 show all mines when lose
+// TODO: 26/04/2016  save flags state when keyboard shows
 // TODO: 25/04/2016  Add difficulties
 // TODO: 25/04/2016  Scoring
+// TODO: 27/04/2016  leaderboard
 // TODO: 25/04/2016  Add some sounds
-// TODO: 25/04/2016  Create BOT with a remarkable name
+// TODO: 25/04/2016  Create a smart BOT and give it a remarkable name

@@ -66,7 +66,12 @@ public class ImageAdapter extends BaseAdapter {
                 else
                     imageView.setImageResource(numbers[MainActivity.neighbors[row][column]]);
             } else {
-                imageView.setImageResource(R.drawable.field);
+                if (MainActivity.hasFlag[row][column])
+                    imageView.setImageResource(R.drawable.flag);
+                else if (MainActivity.hasQuestionMark[row][column])
+                    imageView.setImageResource(R.drawable.question_mark);
+                else
+                    imageView.setImageResource(R.drawable.field);
             }
         }
 
