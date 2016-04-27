@@ -1,21 +1,28 @@
 package omar.Minesweeper;
 
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.GridView;
+import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     static final int GRID_SIZE = 300;
-    static final int MINE_COUNT = 10;
+    static final int MINE_COUNT = 30;
     static final int COLUMN_COUNT = 15;
     static final int ROW_COUNT = GRID_SIZE / COLUMN_COUNT;
 
@@ -69,8 +76,26 @@ public class MainActivity extends AppCompatActivity {
                     return;
 
                 if (hasMine[row][column]) {
+                    ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(1200);
+                    final MediaPlayer boomSound = MediaPlayer.create(getBaseContext(), R.raw.boom);
+                    boomSound.start();
+                    boomSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                        public void onCompletion(MediaPlayer mp) {
+                            boomSound.release();
+                        }
+                    });
+
                     isActive = false;
                     ((Chronometer) findViewById(R.id.chronometer)).stop();
+
+                    ((ImageView) v).setImageResource(R.drawable.opened_mine);
+
+//                    ((ImageView) v).setImageResource(R.drawable.opened_mine);
+//                    Animation fadeIn = new AlphaAnimation(0, 1);
+//                    fadeIn.setInterpolator(new DecelerateInterpolator());
+//                    fadeIn.setDuration(500);
+//                    v.setAnimation(fadeIn);
+//
 
                     for (int i = 0; i < ROW_COUNT; i++) {
                         for (int j = 0; j < COLUMN_COUNT; j++) {
@@ -83,13 +108,19 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 
-                    ((ImageView) v).setImageResource(R.drawable.opened_mine);
 
                     findViewById(R.id.restart).setVisibility(View.VISIBLE);
                     changeSmiley(findViewById(R.id.smiley));
-                } else
+                } else {
+                    final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.button_sound);
+                    clickSound.start();
+                    clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                        public void onCompletion(MediaPlayer mp) {
+                            clickSound.release();
+                        }
+                    });
                     floodFill(row, column);
-
+                }
                 if (revealedCounter == GRID_SIZE - MINE_COUNT) {
                     ((Chronometer) findViewById(R.id.chronometer)).stop();
                     isActive = false;
@@ -114,6 +145,14 @@ public class MainActivity extends AppCompatActivity {
                 if (!isActive || isRevealed[row][column])
                     return true;
 
+                final MediaPlayer boomSound = MediaPlayer.create(getBaseContext(), R.raw.woosh);
+                boomSound.start();
+                boomSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    public void onCompletion(MediaPlayer mp) {
+                        boomSound.release();
+                    }
+                });
+
                 if (hasFlag[row][column]) {
                     ((ImageView) v).setImageResource(R.drawable.question_mark);
                     hasFlag[row][column] = false;
@@ -131,9 +170,12 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /* Hide the status bar on resume. */
     @Override
     protected void onResume() {
         super.onResume();
+        final View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
     }
 
     @Override
@@ -166,25 +208,27 @@ public class MainActivity extends AppCompatActivity {
 
         /* Set up the chronometer. */
         Chronometer timer = (Chronometer) findViewById(R.id.chronometer);
-        int screenHeight = getBaseContext().getResources().getDisplayMetrics().heightPixels;
-        int screenWidth = getBaseContext().getResources().getDisplayMetrics().widthPixels;
-        timer.setTextSize(screenHeight / 40);
+        int screenHeight = getBaseContext().getResources().getDisplayMetrics().heightPixels - 32;
+        int screenWidth = getBaseContext().getResources().getDisplayMetrics().widthPixels - 32;
+        timer.setTextSize(screenHeight / 50);
+//        timer.setPadding(0, 0, screenWidth / 30, 0);
         timer.start();
 
         /* Set up the smiley face. */
         ImageView smiley = (ImageView) findViewById(R.id.smiley);
         smiley.getLayoutParams().height = screenHeight / 10;
         smiley.getLayoutParams().width = screenHeight / 10;
+        changeSmiley(smiley);
+
+        /* Set up the restart button. */
+        Button restart = (Button) findViewById(R.id.restart);
+        restart.setTextSize(screenHeight / 40f);
 
         /* Set up the grid images and on click functions. */
         setupGrid();
 
         /* Generate the grid mines and numbers. */
         generateGrid();
-
-        /* Set up the restart button. */
-        Button restart = (Button) findViewById(R.id.restart);
-        restart.setTextSize(screenHeight / 30f);
     }
 
 
@@ -232,46 +276,38 @@ public class MainActivity extends AppCompatActivity {
 
     /* On click smiley change smiley face depends on current state. */
     public void changeSmiley(View view) {
-        ImageView smiley = (ImageView) view;
-        Object tag = smiley.getTag();
-
-        int newSmiley;
         if (isActive) {
-            if (tag != null && (Integer) tag == R.drawable.mental)
-                newSmiley = R.drawable.stoned;
-            else if (tag != null && (Integer) tag == R.drawable.stoned)
-                newSmiley = R.drawable.salivating;
+            int index = new Random().nextInt(3);
+            if (index == 0)
+                ((ImageView) view).setImageResource(R.drawable.stoned);
+            else if (index == 1)
+                ((ImageView) view).setImageResource(R.drawable.salivating);
             else
-                newSmiley = R.drawable.mental;
-            smiley.setTag(newSmiley);
-            smiley.setImageResource(newSmiley);
+                ((ImageView) view).setImageResource(R.drawable.mental);
         } else if (revealedCounter == GRID_SIZE - MINE_COUNT) {
-            if (tag != null && (Integer) tag == R.drawable.happy)
-                newSmiley = R.drawable.sunglasses;
-            else if (tag != null && (Integer) tag == R.drawable.sunglasses)
-                newSmiley = R.drawable.laughing;
+            int index = new Random().nextInt(3);
+            if (index == 0)
+                ((ImageView) view).setImageResource(R.drawable.sunglasses);
+            else if (index == 1)
+                ((ImageView) view).setImageResource(R.drawable.happy);
             else
-                newSmiley = R.drawable.happy;
-            smiley.setTag(newSmiley);
-            smiley.setImageResource(newSmiley);
+                ((ImageView) view).setImageResource(R.drawable.laughing);
         } else {
-            if (tag != null && (Integer) tag == R.drawable.petrified)
-                newSmiley = R.drawable.crying;
-            else if (tag != null && (Integer) tag == R.drawable.vulnerable)
-                newSmiley = R.drawable.petrified;
-            else if (tag != null && (Integer) tag == R.drawable.crying)
-                newSmiley = R.drawable.horrified;
+            int index = new Random().nextInt(4);
+            if (index == 0)
+                ((ImageView) view).setImageResource(R.drawable.vulnerable);
+            else if (index == 1)
+                ((ImageView) view).setImageResource(R.drawable.crying);
+            else if (index == 2)
+                ((ImageView) view).setImageResource(R.drawable.petrified);
             else
-                newSmiley = R.drawable.vulnerable;
-
-            smiley.setTag(newSmiley);
-            smiley.setImageResource(newSmiley);
+                ((ImageView) view).setImageResource(R.drawable.horrified);
         }
 
     }
 }
 
-// TODO: 25/04/2016  GUI Again => setup resolution
+// TODO: 25/04/2016  GUI Again => setup resolutions
 // TODO: 26/04/2016  save flags state when keyboard shows
 // TODO: 25/04/2016  Add difficulties
 // TODO: 25/04/2016  Scoring
