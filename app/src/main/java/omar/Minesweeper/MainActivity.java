@@ -1,10 +1,13 @@
 package omar.Minesweeper;
 
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.os.Vibrator;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
@@ -22,7 +25,7 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     static final int GRID_SIZE = 300;
-    static final int MINE_COUNT = 30;
+    static final int MINE_COUNT = 10;
     static final int COLUMN_COUNT = 15;
     static final int ROW_COUNT = GRID_SIZE / COLUMN_COUNT;
 
@@ -72,30 +75,26 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 int row = position / COLUMN_COUNT;
                 int column = position % COLUMN_COUNT;
-                if (!isActive || isRevealed[row][column] || hasFlag[row][column] || hasQuestionMark[row][column])
-                    return;
 
+
+                if (!isActive || isRevealed[row][column] || hasFlag[row][column] || hasQuestionMark[row][column]) {
+                    final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.error);
+                    clickSound.setVolume(0.2f, 0.2f);
+                    clickSound.start();
+                    clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                        public void onCompletion(MediaPlayer mp) {
+                            clickSound.release();
+                        }
+                    });
+                    return;
+                }
                 if (hasMine[row][column]) {
                     ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(1200);
                     final MediaPlayer boomSound = MediaPlayer.create(getBaseContext(), R.raw.boom);
                     boomSound.start();
-                    boomSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                        public void onCompletion(MediaPlayer mp) {
-                            boomSound.release();
-                        }
-                    });
 
                     isActive = false;
                     ((Chronometer) findViewById(R.id.chronometer)).stop();
-
-                    ((ImageView) v).setImageResource(R.drawable.opened_mine);
-
-//                    ((ImageView) v).setImageResource(R.drawable.opened_mine);
-//                    Animation fadeIn = new AlphaAnimation(0, 1);
-//                    fadeIn.setInterpolator(new DecelerateInterpolator());
-//                    fadeIn.setDuration(500);
-//                    v.setAnimation(fadeIn);
-//
 
                     for (int i = 0; i < ROW_COUNT; i++) {
                         for (int j = 0; j < COLUMN_COUNT; j++) {
@@ -109,6 +108,8 @@ public class MainActivity extends AppCompatActivity {
                     }
 
 
+                    ((ImageView) v).setImageResource(R.drawable.opened_mine);
+
                     findViewById(R.id.restart).setVisibility(View.VISIBLE);
                     changeSmiley(findViewById(R.id.smiley));
                 } else {
@@ -119,9 +120,13 @@ public class MainActivity extends AppCompatActivity {
                             clickSound.release();
                         }
                     });
+
                     floodFill(row, column);
                 }
                 if (revealedCounter == GRID_SIZE - MINE_COUNT) {
+                    final MediaPlayer boomSound = MediaPlayer.create(getBaseContext(), R.raw.win);
+                    boomSound.start();
+
                     ((Chronometer) findViewById(R.id.chronometer)).stop();
                     isActive = false;
 
@@ -240,6 +245,7 @@ public class MainActivity extends AppCompatActivity {
         if (0 <= row && row < ROW_COUNT && 0 <= column && column < COLUMN_COUNT) {
             if (hasMine[row][column] || isRevealed[row][column] || hasFlag[row][column] || hasQuestionMark[row][column])
                 return;
+
             isRevealed[row][column] = true;
 
             if (neighbors[row][column] == 0) {
@@ -308,9 +314,6 @@ public class MainActivity extends AppCompatActivity {
 }
 
 // TODO: 25/04/2016  GUI Again => setup resolutions
-// TODO: 26/04/2016  save flags state when keyboard shows
 // TODO: 25/04/2016  Add difficulties
-// TODO: 25/04/2016  Scoring
-// TODO: 27/04/2016  leaderboard
-// TODO: 25/04/2016  Add some sounds
+// TODO: 25/04/2016  Scoring and leaderboard
 // TODO: 25/04/2016  Create a smart BOT and give it a remarkable name
