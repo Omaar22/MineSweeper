@@ -51,7 +51,7 @@ public class ImageAdapter extends BaseAdapter {
             final int layoutWidth = mContext.getResources().getDisplayMetrics().widthPixels - 32; // padding 32
             final int layoutHeight = mContext.getResources().getDisplayMetrics().heightPixels - 32; // padding 32
 
-            imageView.setLayoutParams(new GridView.LayoutParams(layoutWidth / (MainActivity.COLUMN_COUNT), layoutHeight / (MainActivity.ROW_COUNT + 8)));
+            imageView.setLayoutParams(new GridView.LayoutParams(layoutWidth / MainActivity.COLUMN_COUNT, (layoutHeight - 120) / (MainActivity.ROW_COUNT + 5)));
             imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
             imageView.setImageResource(R.drawable.field);
         } else {

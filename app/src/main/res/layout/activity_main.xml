@@ -10,7 +10,7 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="omar.Minesweeper.MainActivity">
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/topPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -22,15 +22,30 @@
         <Chronometer
             android:id="@+id/chronometer"
             style="@style/chronometer"
-            android:typeface="serif" />
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:textSize="40sp"
+            android:typeface="sans" />
+
+        <TextView
+            android:id="@+id/score"
+            style="@style/chronometer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:text="0"
+            android:textSize="40sp" />
 
         <ImageView
             android:id="@+id/smiley"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="200dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_centerHorizontal="true"
+            android:layout_centerInParent="true"
             android:onClick="changeSmiley" />
-    </LinearLayout>
+
+    </RelativeLayout>
 
     <GridView
         android:id="@+id/grid"
@@ -39,7 +54,7 @@
         android:layout_below="@+id/topPanel"
         android:stretchMode="columnWidth" />
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/botPanel"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -49,10 +64,13 @@
         <Button
             android:id="@+id/restart"
             style="@style/buttonStyle"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
             android:onClick="restartButton"
             android:text="@string/Restart"
+            android:textSize="50sp"
             android:visibility="invisible" />
-    </LinearLayout>
+    </RelativeLayout>
 
 
 </RelativeLayout>

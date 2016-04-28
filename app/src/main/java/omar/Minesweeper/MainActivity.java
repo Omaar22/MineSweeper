@@ -1,31 +1,22 @@
 package omar.Minesweeper;
 
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.TransitionDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.os.Vibrator;
-import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.GridView;
-import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     static final int GRID_SIZE = 300;
-    static final int MINE_COUNT = 10;
+    static final int MINE_COUNT = 20;
     static final int COLUMN_COUNT = 15;
     static final int ROW_COUNT = GRID_SIZE / COLUMN_COUNT;
 
@@ -76,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
                 int row = position / COLUMN_COUNT;
                 int column = position % COLUMN_COUNT;
 
-
                 if (!isActive || isRevealed[row][column] || hasFlag[row][column] || hasQuestionMark[row][column]) {
                     final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.error);
                     clickSound.setVolume(0.2f, 0.2f);
@@ -89,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
                 if (hasMine[row][column]) {
-                    ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(1200);
+                    ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(1400);
                     final MediaPlayer boomSound = MediaPlayer.create(getBaseContext(), R.raw.boom);
                     boomSound.start();
 
@@ -147,14 +137,22 @@ public class MainActivity extends AppCompatActivity {
             public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
                 int row = position / COLUMN_COUNT;
                 int column = position % COLUMN_COUNT;
-                if (!isActive || isRevealed[row][column])
+                if (!isActive || isRevealed[row][column]) {
+                    final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.error);
+                    clickSound.setVolume(0.2f, 0.2f);
+                    clickSound.start();
+                    clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                        public void onCompletion(MediaPlayer mp) {
+                            clickSound.release();
+                        }
+                    });
                     return true;
-
-                final MediaPlayer boomSound = MediaPlayer.create(getBaseContext(), R.raw.woosh);
-                boomSound.start();
-                boomSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                }
+                final MediaPlayer wooshSound = MediaPlayer.create(getBaseContext(), R.raw.woosh);
+                wooshSound.start();
+                wooshSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                     public void onCompletion(MediaPlayer mp) {
-                        boomSound.release();
+                        wooshSound.release();
                     }
                 });
 
@@ -206,28 +204,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        /* Set up the chronometer. */
-        Chronometer timer = (Chronometer) findViewById(R.id.chronometer);
-        int screenHeight = getBaseContext().getResources().getDisplayMetrics().heightPixels - 32;
-        int screenWidth = getBaseContext().getResources().getDisplayMetrics().widthPixels - 32;
-        timer.setTextSize(screenHeight / 50);
-//        timer.setPadding(0, 0, screenWidth / 30, 0);
-        timer.start();
+        /* Start the chronometer. */
+        ((Chronometer) findViewById(R.id.chronometer)).start();
 
-        /* Set up the smiley face. */
-        ImageView smiley = (ImageView) findViewById(R.id.smiley);
-        smiley.getLayoutParams().height = screenHeight / 10;
-        smiley.getLayoutParams().width = screenHeight / 10;
-        changeSmiley(smiley);
-
-        /* Set up the restart button. */
-        Button restart = (Button) findViewById(R.id.restart);
-        restart.setTextSize(screenHeight / 40f);
+        changeSmiley(findViewById(R.id.smiley));
 
         /* Set up the grid images and on click functions. */
         setupGrid();
