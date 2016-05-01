@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">Mine Sweeper</string>
-    <string name="Restart">Restart</string>
+    <string name="Restart">Play Again</string>
     <string name="smiley">Smiley face</string>
 </resources>

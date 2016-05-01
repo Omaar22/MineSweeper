@@ -47,29 +47,30 @@
 
     <GridView
         android:id="@+id/grid"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_below="@+id/topPanel"
         android:paddingTop="@dimen/activity_vertical_margin"
         android:stretchMode="columnWidth" />
 
     <RelativeLayout
         android:id="@+id/botPanel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_below="@id/grid"
+        android:orientation="horizontal"
         android:paddingTop="@dimen/activity_vertical_margin">
 
         <Button
             android:id="@+id/restart"
+            style="@style/buttonStyle"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:onClick="restartButton"
             android:text="@string/Restart"
+            android:textAlignment="center"
             android:visibility="invisible" />
     </RelativeLayout>
-
-    <!--style="@style/buttonStyle"-->
 
 
 </RelativeLayout>

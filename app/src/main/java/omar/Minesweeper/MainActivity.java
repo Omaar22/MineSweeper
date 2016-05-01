@@ -1,20 +1,26 @@
 package omar.Minesweeper;
 
+import android.graphics.Typeface;
+import android.media.Image;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
+
     static final int GRID_SIZE = 300;
     static final int MINE_COUNT = 20;
     static final int COLUMN_COUNT = 15;
@@ -69,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
 
                 if (!isActive || isRevealed[row][column] || hasFlag[row][column] || hasQuestionMark[row][column]) {
                     final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.error);
-                    clickSound.setVolume(0.2f, 0.2f);
                     clickSound.start();
                     clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                         public void onCompletion(MediaPlayer mp) {
@@ -79,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
                 if (hasMine[row][column]) {
-                    ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(1400);
+                    ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(800);
                     final MediaPlayer boomSound = MediaPlayer.create(getBaseContext(), R.raw.boom);
                     boomSound.start();
 
@@ -139,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
                 int column = position % COLUMN_COUNT;
                 if (!isActive || isRevealed[row][column]) {
                     final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.error);
-                    clickSound.setVolume(0.2f, 0.2f);
                     clickSound.start();
                     clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                         public void onCompletion(MediaPlayer mp) {
@@ -207,10 +211,28 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        /* Start the chronometer. */
-        ((Chronometer) findViewById(R.id.chronometer)).start();
+        final int screenWidth = this.getResources().getDisplayMetrics().widthPixels - 64; // padding 32
+        final int screenHeight = this.getResources().getDisplayMetrics().heightPixels - 64; // padding 32
 
-        changeSmiley(findViewById(R.id.smiley));
+        /* Start the chronometer. */
+        Chronometer timer = (Chronometer) findViewById(R.id.chronometer);
+        timer.setTextSize(TypedValue.COMPLEX_UNIT_PX, screenWidth / 7);
+        timer.start();
+
+        /* Setting up the smiley face. */
+        ImageView smiley = (ImageView) findViewById(R.id.smiley);
+        smiley.getLayoutParams().width = screenWidth / 5;
+        smiley.getLayoutParams().height = screenWidth / 5;
+        changeSmiley(smiley);
+
+        /* Set up the score . */
+        TextView score = (TextView) findViewById(R.id.score);
+        score.setTextSize(TypedValue.COMPLEX_UNIT_PX, screenWidth / 7);
+
+        /* set up the play again button. */
+        Button playAgain = (Button) findViewById(R.id.restart);
+        playAgain.setTextSize(TypedValue.COMPLEX_UNIT_PX, screenWidth / 7);
+        playAgain.setTypeface(Typeface.SERIF);
 
         /* Set up the grid images and on click functions. */
         setupGrid();
@@ -296,7 +318,6 @@ public class MainActivity extends AppCompatActivity {
     }
 }
 
-// TODO: 25/04/2016  GUI Again => setup resolutions
 // TODO: 25/04/2016  Add difficulties
 // TODO: 25/04/2016  Scoring and leaderboard
 // TODO: 25/04/2016  Create a smart BOT and give it a remarkable name

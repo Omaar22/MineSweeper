@@ -48,10 +48,11 @@ public class ImageAdapter extends BaseAdapter {
             // if it's not recycled, initialize some attributes
             imageView = new ImageView(mContext);
 
-            final int layoutWidth = mContext.getResources().getDisplayMetrics().widthPixels - 32; // padding 32
-            final int layoutHeight = mContext.getResources().getDisplayMetrics().heightPixels - 32; // padding 32
+            final int screenWidth = mContext.getResources().getDisplayMetrics().widthPixels - 64; // padding 32
+            final int screenHeight = mContext.getResources().getDisplayMetrics().heightPixels - 64; // padding 32
 
-            imageView.setLayoutParams(new GridView.LayoutParams(layoutWidth / MainActivity.COLUMN_COUNT, (layoutHeight - 120) / (MainActivity.ROW_COUNT + 5)));
+            imageView.setLayoutParams(new GridView.LayoutParams(screenWidth / (MainActivity.COLUMN_COUNT),
+                    (screenHeight - (screenWidth / 5) * 2 - 64) / (MainActivity.ROW_COUNT ))); // height - smiley size - grid padding
             imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
             imageView.setImageResource(R.drawable.field);
         } else {
