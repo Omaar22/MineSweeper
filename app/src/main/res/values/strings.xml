@@ -2,4 +2,9 @@
     <string name="app_name">Mine Sweeper</string>
     <string name="Restart">Play Again</string>
     <string name="smiley">Smiley face</string>
+    <string name="back">Back</string>
+    <string name="easy">Easy</string>
+    <string name="medium">Medium</string>
+    <string name="hard">Hard</string>
+    <string name="insane">Insane</string>
 </resources>

@@ -1,13 +1,14 @@
 package omar.Minesweeper;
 
 import android.graphics.Typeface;
-import android.media.Image;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.os.Vibrator;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.AdapterView;
@@ -15,16 +16,16 @@ import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MyDialogFragment.Communicator {
 
     static final int GRID_SIZE = 300;
-    static final int MINE_COUNT = 20;
     static final int COLUMN_COUNT = 15;
     static final int ROW_COUNT = GRID_SIZE / COLUMN_COUNT;
+
+    int minesCount;
 
     static boolean hasMine[][] = new boolean[GRID_SIZE / COLUMN_COUNT][COLUMN_COUNT];
     static boolean isRevealed[][] = new boolean[GRID_SIZE / COLUMN_COUNT][COLUMN_COUNT];
@@ -37,8 +38,9 @@ public class MainActivity extends AppCompatActivity {
     int deltaXY[][] = new int[][]{{1, 0}, {0, 1}, {0, -1}, {-1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
 
     void generateGrid() {
+        Log.d("Omar", "generateGrid: " + minesCount);
         /* Generate mines */
-        for (int i = 0; i < MINE_COUNT; i++) {
+        for (int i = 0; i < minesCount; i++) {
             Random rand = new Random();
             int randomNum = -1;
             while (randomNum == -1 || hasMine[randomNum / COLUMN_COUNT][randomNum % COLUMN_COUNT])
@@ -118,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
 
                     floodFill(row, column);
                 }
-                if (revealedCounter == GRID_SIZE - MINE_COUNT) {
+                if (revealedCounter == GRID_SIZE - minesCount) {
                     final MediaPlayer boomSound = MediaPlayer.create(getBaseContext(), R.raw.win);
                     boomSound.start();
 
@@ -212,22 +214,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         final int screenWidth = this.getResources().getDisplayMetrics().widthPixels - 64; // padding 32
-        final int screenHeight = this.getResources().getDisplayMetrics().heightPixels - 64; // padding 32
 
         /* Start the chronometer. */
         Chronometer timer = (Chronometer) findViewById(R.id.chronometer);
         timer.setTextSize(TypedValue.COMPLEX_UNIT_PX, screenWidth / 7);
-        timer.start();
 
         /* Setting up the smiley face. */
         ImageView smiley = (ImageView) findViewById(R.id.smiley);
         smiley.getLayoutParams().width = screenWidth / 5;
         smiley.getLayoutParams().height = screenWidth / 5;
         changeSmiley(smiley);
-
-        /* Set up the score . */
-        TextView score = (TextView) findViewById(R.id.score);
-        score.setTextSize(TypedValue.COMPLEX_UNIT_PX, screenWidth / 7);
 
         /* set up the play again button. */
         Button playAgain = (Button) findViewById(R.id.restart);
@@ -239,6 +235,24 @@ public class MainActivity extends AppCompatActivity {
 
         /* Generate the grid mines and numbers. */
         generateGrid();
+
+
+        /* On click restart. */
+        findViewById(R.id.restart).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentManager manager = getSupportFragmentManager();
+                MyDialogFragment dialog = new MyDialogFragment();
+                dialog.setCancelable(true);
+                dialog.show(manager, "On Click");
+            }
+        });
+
+        /* Pop up a dialog. */
+        FragmentManager manager = getSupportFragmentManager();
+        MyDialogFragment dialog = new MyDialogFragment();
+        dialog.setCancelable(false);
+        dialog.show(manager, "Initial");
     }
 
 
@@ -265,26 +279,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /* On click restart button. */
-    public void restartButton(View view) {
-        view.setVisibility(View.INVISIBLE);
-        isActive = true;
-        revealedCounter = 0;
-
-        for (int i = 0; i < ROW_COUNT; i++)
-            for (int j = 0; j < COLUMN_COUNT; j++)
-                hasMine[i][j] = isRevealed[i][j] = hasQuestionMark[i][j] = hasFlag[i][j] = false;
-
-        changeSmiley(findViewById(R.id.smiley));
-
-        generateGrid();
-        ((GridView) findViewById(R.id.grid)).setAdapter(new ImageAdapter(getBaseContext()));
-
-        Chronometer timer = (Chronometer) findViewById(R.id.chronometer);
-        timer.setBase(SystemClock.elapsedRealtime());
-        timer.start();
-    }
-
     /* On click smiley change smiley face depends on current state. */
     public void changeSmiley(View view) {
         if (isActive) {
@@ -295,7 +289,7 @@ public class MainActivity extends AppCompatActivity {
                 ((ImageView) view).setImageResource(R.drawable.salivating);
             else
                 ((ImageView) view).setImageResource(R.drawable.mental);
-        } else if (revealedCounter == GRID_SIZE - MINE_COUNT) {
+        } else if (revealedCounter == GRID_SIZE - minesCount) {
             int index = new Random().nextInt(3);
             if (index == 0)
                 ((ImageView) view).setImageResource(R.drawable.sunglasses);
@@ -315,6 +309,38 @@ public class MainActivity extends AppCompatActivity {
                 ((ImageView) view).setImageResource(R.drawable.horrified);
         }
 
+    }
+
+    public void resetEverything() {
+        isActive = true;
+        revealedCounter = 0;
+        for (int i = 0; i < ROW_COUNT; i++)
+            for (int j = 0; j < COLUMN_COUNT; j++)
+                hasMine[i][j] = isRevealed[i][j] = hasQuestionMark[i][j] = hasFlag[i][j] = false;
+
+        findViewById(R.id.restart).setVisibility(View.INVISIBLE);
+        changeSmiley(findViewById(R.id.smiley));
+
+        generateGrid();
+        ((GridView) findViewById(R.id.grid)).setAdapter(new ImageAdapter(getBaseContext()));
+
+        Chronometer timer = (Chronometer) findViewById(R.id.chronometer);
+        timer.setBase(SystemClock.elapsedRealtime());
+        timer.start();
+    }
+
+    @Override
+    public void onDialogMessage(int message) {
+        if (message == 0)
+            minesCount = 15;
+        if (message == 1)
+            minesCount = 25;
+        if (message == 2)
+            minesCount = 35;
+        if (message == 3)
+            minesCount = 50;
+
+        resetEverything();
     }
 }
 

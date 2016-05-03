@@ -26,15 +26,6 @@
             android:layout_alignParentTop="true"
             android:typeface="sans" />
 
-        <TextView
-            android:id="@+id/score"
-            style="@style/chronometer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
-            android:text="NULL" />
-
         <ImageView
             android:id="@+id/smiley"
             android:layout_width="wrap_content"
