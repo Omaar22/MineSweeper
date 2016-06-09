@@ -1,30 +1,20 @@
 package omar.Minesweeper;
 
-import android.graphics.Bitmap;
-import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.ScaleDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.os.Vibrator;
-import android.provider.ContactsContract;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 
 import java.util.Random;
 
@@ -33,7 +23,7 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
     static final int GRID_SIZE = 300;
     static final int COLUMN_COUNT = 15;
     static final int ROW_COUNT = GRID_SIZE / COLUMN_COUNT;
-
+    boolean revealOnClik = true;
     int minesCount;
 
     static boolean hasMine[][] = new boolean[GRID_SIZE / COLUMN_COUNT][COLUMN_COUNT];
@@ -75,115 +65,165 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         }
     }
 
+    void reveal(View v, int row, int column) {
+        final GridView grid = (GridView) findViewById(R.id.grid);
+
+        if (isActive && isRevealed[row][column]) {
+            int flagsCount = 0;
+            if (!hasMine[row][column]) {
+                for (int k = 0; k < 8; k++) {
+                    int X = row + deltaXY[k][0];
+                    int Y = column + deltaXY[k][1];
+                    if (0 <= X && X < GRID_SIZE / COLUMN_COUNT && 0 <= Y && Y < COLUMN_COUNT && hasFlag[X][Y])
+                        flagsCount++;
+                }
+            }
+
+            int newRevealedCount = 0;
+            if (neighbors[row][column] == flagsCount) {
+                for (int k = 0; k < 8; k++) {
+                    int X = row + deltaXY[k][0];
+                    int Y = column + deltaXY[k][1];
+                    if (0 <= X && X < GRID_SIZE / COLUMN_COUNT && 0 <= Y && Y < COLUMN_COUNT && !hasFlag[X][Y] && !isRevealed[X][Y]) {
+                        reveal(v, X, Y);
+                        newRevealedCount++;
+                    }
+                }
+                if (newRevealedCount != 0)
+                    return;
+            }
+        }
+
+        if (!isActive || isRevealed[row][column] || hasFlag[row][column] || hasQuestionMark[row][column]) {
+            final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.error);
+            clickSound.start();
+            clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                public void onCompletion(MediaPlayer mp) {
+                    clickSound.release();
+                }
+            });
+            return;
+        }
+        if (hasMine[row][column]) {
+            ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(800);
+            final MediaPlayer boomSound = MediaPlayer.create(getBaseContext(), R.raw.boom);
+            boomSound.start();
+
+            isActive = false;
+            ((Chronometer) findViewById(R.id.chronometer)).stop();
+
+            for (int i = 0; i < ROW_COUNT; i++) {
+                for (int j = 0; j < COLUMN_COUNT; j++) {
+                    ImageView cell = (ImageView) (grid.getChildAt(i * COLUMN_COUNT + j));
+
+                    if (hasFlag[i][j] && !hasMine[i][j])
+                        cell.setImageResource(R.drawable.wrong_flag);
+                    if (!hasFlag[i][j] && hasMine[i][j])
+                        cell.setImageResource(R.drawable.mine);
+                }
+            }
+
+            ((ImageView) (grid.getChildAt(row * COLUMN_COUNT + column))).setImageResource(R.drawable.opened_mine);
+
+            changeSmiley(findViewById(R.id.smiley));
+        } else {
+            final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.button_sound);
+            clickSound.start();
+            clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                public void onCompletion(MediaPlayer mp) {
+                    clickSound.release();
+                }
+            });
+
+            floodFill(row, column);
+        }
+
+        /*check if the board is completed */
+        if (revealedCounter == GRID_SIZE - minesCount) {
+            final MediaPlayer boomSound = MediaPlayer.create(getBaseContext(), R.raw.win);
+            boomSound.start();
+
+            ((Chronometer) findViewById(R.id.chronometer)).stop();
+            isActive = false;
+
+            changeSmiley(findViewById(R.id.smiley));
+            for (int i = 0; i < ROW_COUNT; i++) {
+                for (int j = 0; j < COLUMN_COUNT; j++) {
+                    if (!isRevealed[i][j]) {
+                        ImageView cell = (ImageView) (grid.getChildAt(i * COLUMN_COUNT + j));
+                        cell.setImageResource(R.drawable.flag);
+                    }
+                }
+            }
+        }
+    }
+
+    void flag(View v, int row, int column) {
+
+        if (!isActive || isRevealed[row][column]) {
+            final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.error);
+            clickSound.start();
+            clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                public void onCompletion(MediaPlayer mp) {
+                    clickSound.release();
+                }
+            });
+            return;
+        }
+
+        final MediaPlayer wooshSound = MediaPlayer.create(getBaseContext(), R.raw.woosh);
+        wooshSound.start();
+        wooshSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            public void onCompletion(MediaPlayer mp) {
+                wooshSound.release();
+            }
+        });
+
+        if (hasFlag[row][column]) {
+            ((ImageView) v).setImageResource(R.drawable.question_mark);
+            hasFlag[row][column] = false;
+            hasQuestionMark[row][column] = true;
+        } else if (hasQuestionMark[row][column]) {
+            ((ImageView) v).setImageResource(R.drawable.field);
+            hasQuestionMark[row][column] = false;
+        } else {
+            ((ImageView) v).setImageResource(R.drawable.flag);
+            hasFlag[row][column] = true;
+        }
+    }
+
     void setupGrid() {
         final GridView grid = (GridView) findViewById(R.id.grid);
         grid.setNumColumns(COLUMN_COUNT);
         grid.setAdapter(new ImageAdapter(this));
+
         grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 int row = position / COLUMN_COUNT;
                 int column = position % COLUMN_COUNT;
 
-                if (!isActive || isRevealed[row][column] || hasFlag[row][column] || hasQuestionMark[row][column]) {
-                    final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.error);
-                    clickSound.start();
-                    clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                        public void onCompletion(MediaPlayer mp) {
-                            clickSound.release();
-                        }
-                    });
-                    return;
-                }
-                if (hasMine[row][column]) {
-                    ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(800);
-                    final MediaPlayer boomSound = MediaPlayer.create(getBaseContext(), R.raw.boom);
-                    boomSound.start();
 
-                    isActive = false;
-                    ((Chronometer) findViewById(R.id.chronometer)).stop();
-
-                    for (int i = 0; i < ROW_COUNT; i++) {
-                        for (int j = 0; j < COLUMN_COUNT; j++) {
-                            ImageView cell = (ImageView) (grid.getChildAt(i * COLUMN_COUNT + j));
-
-                            if (hasFlag[i][j] && !hasMine[i][j])
-                                cell.setImageResource(R.drawable.wrong_flag);
-                            if (!hasFlag[i][j] && hasMine[i][j])
-                                cell.setImageResource(R.drawable.mine);
-                        }
-                    }
-
-
-                    ((ImageView) v).setImageResource(R.drawable.opened_mine);
-
-                    changeSmiley(findViewById(R.id.smiley));
-                } else {
-                    final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.button_sound);
-                    clickSound.start();
-                    clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                        public void onCompletion(MediaPlayer mp) {
-                            clickSound.release();
-                        }
-                    });
-
-                    floodFill(row, column);
-                }
-                if (revealedCounter == GRID_SIZE - minesCount) {
-                    final MediaPlayer boomSound = MediaPlayer.create(getBaseContext(), R.raw.win);
-                    boomSound.start();
-
-                    ((Chronometer) findViewById(R.id.chronometer)).stop();
-                    isActive = false;
-
-                    changeSmiley(findViewById(R.id.smiley));
-                    for (int i = 0; i < ROW_COUNT; i++) {
-                        for (int j = 0; j < COLUMN_COUNT; j++) {
-                            if (!isRevealed[i][j]) {
-                                ImageView cell = (ImageView) (grid.getChildAt(i * COLUMN_COUNT + j));
-                                cell.setImageResource(R.drawable.flag);
-                            }
-                        }
-                    }
-                }
+                if (revealOnClik)
+                    reveal(v, row, column);
+                else
+                    flag(v, row, column);
             }
         });
         grid.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
                 int row = position / COLUMN_COUNT;
                 int column = position % COLUMN_COUNT;
-                if (!isActive || isRevealed[row][column]) {
-                    final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.error);
-                    clickSound.start();
-                    clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                        public void onCompletion(MediaPlayer mp) {
-                            clickSound.release();
-                        }
-                    });
-                    return true;
-                }
-                final MediaPlayer wooshSound = MediaPlayer.create(getBaseContext(), R.raw.woosh);
-                wooshSound.start();
-                wooshSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                    public void onCompletion(MediaPlayer mp) {
-                        wooshSound.release();
-                    }
-                });
 
-                if (hasFlag[row][column]) {
-                    ((ImageView) v).setImageResource(R.drawable.question_mark);
-                    hasFlag[row][column] = false;
-                    hasQuestionMark[row][column] = true;
-                } else if (hasQuestionMark[row][column]) {
-                    ((ImageView) v).setImageResource(R.drawable.field);
-                    hasQuestionMark[row][column] = false;
-                } else {
-                    ((ImageView) v).setImageResource(R.drawable.flag);
-                    hasFlag[row][column] = true;
-                }
+                if (revealOnClik)
+                    flag(v, row, column);
+                else
+                    reveal(v, row, column);
 
                 return true;
             }
         });
+
+
     }
 
     /* Hide the status bar on resume. */
@@ -256,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         hint.getLayoutParams().height = screenWidth / 5;
 
 
-        /* On click restart. */
+        /* On click replay. */
         findViewById(R.id.replay).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -267,7 +307,24 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
             }
         });
 
-        /* Pop up a dialog. */
+        /* On click click icon. */
+        findViewById(R.id.clickIcon).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (revealOnClik) {
+                    revealOnClik = false;
+                    ((ImageButton) v).setImageResource(R.drawable.flag_icon);
+                } else {
+                    revealOnClik = true;
+                    ((ImageButton) v).setImageResource(R.drawable.icon);
+                }
+
+            }
+        });
+
+
+
+        /* Pop up the start dialog. */
         FragmentManager manager = getSupportFragmentManager();
         MyDialogFragment dialog = new MyDialogFragment();
         dialog.setCancelable(false);
