@@ -1,21 +1,30 @@
 package omar.Minesweeper;
 
+import android.graphics.Bitmap;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.ScaleDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.os.Vibrator;
+import android.provider.ContactsContract;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import java.util.Random;
 
@@ -107,7 +116,6 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
 
                     ((ImageView) v).setImageResource(R.drawable.opened_mine);
 
-                    findViewById(R.id.restart).setVisibility(View.VISIBLE);
                     changeSmiley(findViewById(R.id.smiley));
                 } else {
                     final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.button_sound);
@@ -136,7 +144,6 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                             }
                         }
                     }
-                    findViewById(R.id.restart).setVisibility(View.VISIBLE);
                 }
             }
         });
@@ -225,20 +232,32 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         smiley.getLayoutParams().height = screenWidth / 5;
         changeSmiley(smiley);
 
-        /* set up the play again button. */
-        Button playAgain = (Button) findViewById(R.id.restart);
-        playAgain.setTextSize(TypedValue.COMPLEX_UNIT_PX, screenWidth / 7);
-        playAgain.setTypeface(Typeface.SERIF);
 
-        /* Set up the grid images and on click functions. */
+        ImageButton clickIcon = (ImageButton) findViewById(R.id.clickIcon);
+        clickIcon.getLayoutParams().width = screenWidth / 5;
+        clickIcon.getLayoutParams().height = screenWidth / 5;
+
+//        /* Set up the grid images and on click functions. */
         setupGrid();
-
-        /* Generate the grid mines and numbers. */
+//
+//        /* Generate the grid mines and numbers. */
         generateGrid();
+
+        ImageButton replay = (ImageButton) findViewById(R.id.replay);
+        replay.getLayoutParams().width = screenWidth / 5;
+        replay.getLayoutParams().height = screenWidth / 5;
+
+        ImageButton settings = (ImageButton) findViewById(R.id.settings);
+        settings.getLayoutParams().width = screenWidth / 5;
+        settings.getLayoutParams().height = screenWidth / 5;
+
+        ImageButton hint = (ImageButton) findViewById(R.id.hint);
+        hint.getLayoutParams().width = screenWidth / 5;
+        hint.getLayoutParams().height = screenWidth / 5;
 
 
         /* On click restart. */
-        findViewById(R.id.restart).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.replay).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 FragmentManager manager = getSupportFragmentManager();
@@ -318,7 +337,6 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
             for (int j = 0; j < COLUMN_COUNT; j++)
                 hasMine[i][j] = isRevealed[i][j] = hasQuestionMark[i][j] = hasFlag[i][j] = false;
 
-        findViewById(R.id.restart).setVisibility(View.INVISIBLE);
         changeSmiley(findViewById(R.id.smiley));
 
         generateGrid();
@@ -344,6 +362,6 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
     }
 }
 
-// TODO: 25/04/2016  Add difficulties
+// TODO: 09/06/2016  Add sound control
 // TODO: 25/04/2016  Scoring and leaderboard
 // TODO: 25/04/2016  Create a smart BOT and give it a remarkable name

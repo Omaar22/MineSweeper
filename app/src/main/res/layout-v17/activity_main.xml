@@ -32,7 +32,18 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_centerInParent="true"
-            android:onClick="changeSmiley" />
+            android:onClick="changeSmiley"
+            android:scaleType="fitXY" />
+
+
+        <ImageButton
+            android:id="@+id/clickIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:scaleType="fitXY"
+            android:src="@drawable/icon" />
 
     </RelativeLayout>
 
@@ -52,15 +63,33 @@
         android:orientation="horizontal"
         android:paddingTop="@dimen/activity_vertical_margin">
 
-        <Button
-            android:id="@+id/restart"
-            style="@style/buttonStyle"
-            android:layout_width="match_parent"
+
+        <ImageButton
+            android:id="@+id/replay"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:onClick="restartButton"
-            android:text="@string/Restart"
-            android:textAlignment="center"
-            android:visibility="invisible" />
+            android:scaleType="fitXY"
+            android:src="@drawable/replay" />
+
+        <ImageButton
+            android:id="@+id/hint"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"
+            android:layout_centerInParent="true"
+            android:scaleType="fitXY"
+            android:src="@drawable/hint" />
+
+        <ImageButton
+            android:id="@+id/settings"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:scaleType="fitXY"
+            android:src="@drawable/settings" />
+
+
     </RelativeLayout>
 
 
