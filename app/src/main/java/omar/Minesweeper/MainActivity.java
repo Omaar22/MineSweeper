@@ -65,9 +65,7 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         }
     }
 
-    void reveal(View v, int row, int column) {
-        final GridView grid = (GridView) findViewById(R.id.grid);
-
+    boolean revealNeighbors(int row, int column) {
         if (isActive && isRevealed[row][column]) {
             int flagsCount = 0;
             if (!hasMine[row][column]) {
@@ -85,14 +83,21 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                     int X = row + deltaXY[k][0];
                     int Y = column + deltaXY[k][1];
                     if (0 <= X && X < GRID_SIZE / COLUMN_COUNT && 0 <= Y && Y < COLUMN_COUNT && !hasFlag[X][Y] && !isRevealed[X][Y]) {
-                        reveal(v, X, Y);
+                        reveal(X, Y);
                         newRevealedCount++;
                     }
                 }
                 if (newRevealedCount != 0)
-                    return;
+                    return true;
             }
         }
+        return false;
+    }
+
+    void reveal(int row, int column) {
+        GridView grid = (GridView) findViewById(R.id.grid);
+        ImageView v = (ImageView) (grid.getChildAt(row * COLUMN_COUNT + column));
+
 
         if (!isActive || isRevealed[row][column] || hasFlag[row][column] || hasQuestionMark[row][column]) {
             final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.error);
@@ -158,7 +163,9 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         }
     }
 
-    void flag(View v, int row, int column) {
+    void flag(int row, int column) {
+        GridView grid = (GridView) findViewById(R.id.grid);
+        ImageView v = (ImageView) (grid.getChildAt(row * COLUMN_COUNT + column));
 
         if (!isActive || isRevealed[row][column]) {
             final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.error);
@@ -180,14 +187,14 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         });
 
         if (hasFlag[row][column]) {
-            ((ImageView) v).setImageResource(R.drawable.question_mark);
+            v.setImageResource(R.drawable.question_mark);
             hasFlag[row][column] = false;
             hasQuestionMark[row][column] = true;
         } else if (hasQuestionMark[row][column]) {
-            ((ImageView) v).setImageResource(R.drawable.field);
+            v.setImageResource(R.drawable.field);
             hasQuestionMark[row][column] = false;
         } else {
-            ((ImageView) v).setImageResource(R.drawable.flag);
+            v.setImageResource(R.drawable.flag);
             hasFlag[row][column] = true;
         }
     }
@@ -202,11 +209,12 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                 int row = position / COLUMN_COUNT;
                 int column = position % COLUMN_COUNT;
 
-
-                if (revealOnClik)
-                    reveal(v, row, column);
+                if (revealNeighbors(row, column))
+                    ;
+                else if (revealOnClik)
+                    reveal(row, column);
                 else
-                    flag(v, row, column);
+                    flag(row, column);
             }
         });
         grid.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -214,10 +222,12 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                 int row = position / COLUMN_COUNT;
                 int column = position % COLUMN_COUNT;
 
-                if (revealOnClik)
-                    flag(v, row, column);
+                if (revealNeighbors(row, column))
+                    ;
+                else if (revealOnClik)
+                    flag(row, column);
                 else
-                    reveal(v, row, column);
+                    reveal(row, column);
 
                 return true;
             }
