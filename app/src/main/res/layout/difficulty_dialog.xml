@@ -4,29 +4,33 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="omar.Minesweeper.MyDialogFragment">
+    tools:context=".DifficultyDialog">
 
     <Button
         android:id="@+id/Easy"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/easy" />
+        android:text="@string/easy"
+        style="@android:style/Theme.DeviceDefault.Light.Dialog.MinWidth" />
 
     <Button
         android:id="@+id/Medium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/medium" />
+        android:text="@string/medium"
+        style="@android:style/Theme.DeviceDefault.Light.Dialog.MinWidth" />
 
     <Button
         android:id="@+id/Hard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/hard" />
+        android:text="@string/hard"
+        style="@android:style/Theme.DeviceDefault.Light.Dialog.MinWidth" />
 
     <Button
         android:id="@+id/Insane"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/insane" />
+        android:text="@string/insane"
+        style="@android:style/Theme.DeviceDefault.Light.Dialog.MinWidth" />
 </LinearLayout>

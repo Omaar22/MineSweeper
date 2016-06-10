@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-public class MyDialogFragment extends DialogFragment {
+public class DifficultyDialog extends DialogFragment {
     Communicator communicator;
 
     @Override
@@ -25,7 +25,7 @@ public class MyDialogFragment extends DialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_dialog, container, false);
+        View rootView = inflater.inflate(R.layout.difficulty_dialog, container, false);
 
         getDialog().setTitle("Difficulty");
         Button button[] = new Button[4];

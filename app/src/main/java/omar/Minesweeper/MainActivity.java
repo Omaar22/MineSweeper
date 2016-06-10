@@ -18,12 +18,13 @@ import android.widget.ImageView;
 
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity implements MyDialogFragment.Communicator {
+public class MainActivity extends AppCompatActivity implements DifficultyDialog.Communicator {
 
     static final int GRID_SIZE = 300;
     static final int COLUMN_COUNT = 15;
     static final int ROW_COUNT = GRID_SIZE / COLUMN_COUNT;
-    boolean revealOnClik = true;
+    boolean revealOnClick = true;
+    boolean mute = false;
     int minesCount;
 
     static boolean hasMine[][] = new boolean[GRID_SIZE / COLUMN_COUNT][COLUMN_COUNT];
@@ -100,20 +101,23 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
 
 
         if (!isActive || isRevealed[row][column] || hasFlag[row][column] || hasQuestionMark[row][column]) {
-            final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.error);
-            clickSound.start();
-            clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                public void onCompletion(MediaPlayer mp) {
-                    clickSound.release();
-                }
-            });
+            if (!mute) {
+                final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.error);
+                clickSound.start();
+                clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    public void onCompletion(MediaPlayer mp) {
+                        clickSound.release();
+                    }
+                });
+            }
             return;
         }
         if (hasMine[row][column]) {
             ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(800);
-            final MediaPlayer boomSound = MediaPlayer.create(getBaseContext(), R.raw.boom);
-            boomSound.start();
-
+            if (!mute) {
+                final MediaPlayer boomSound = MediaPlayer.create(getBaseContext(), R.raw.boom);
+                boomSound.start();
+            }
             isActive = false;
             ((Chronometer) findViewById(R.id.chronometer)).stop();
 
@@ -132,22 +136,25 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
 
             changeSmiley(findViewById(R.id.smiley));
         } else {
-            final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.button_sound);
-            clickSound.start();
-            clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                public void onCompletion(MediaPlayer mp) {
-                    clickSound.release();
-                }
-            });
+            if (!mute) {
+                final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.button_sound);
+                clickSound.start();
+                clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    public void onCompletion(MediaPlayer mp) {
+                        clickSound.release();
+                    }
+                });
+            }
 
             floodFill(row, column);
         }
 
         /*check if the board is completed */
         if (revealedCounter == GRID_SIZE - minesCount) {
-            final MediaPlayer boomSound = MediaPlayer.create(getBaseContext(), R.raw.win);
-            boomSound.start();
-
+            if (!mute) {
+                final MediaPlayer boomSound = MediaPlayer.create(getBaseContext(), R.raw.win);
+                boomSound.start();
+            }
             ((Chronometer) findViewById(R.id.chronometer)).stop();
             isActive = false;
 
@@ -168,23 +175,26 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         ImageView v = (ImageView) (grid.getChildAt(row * COLUMN_COUNT + column));
 
         if (!isActive || isRevealed[row][column]) {
-            final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.error);
-            clickSound.start();
-            clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                public void onCompletion(MediaPlayer mp) {
-                    clickSound.release();
-                }
-            });
+            if (!mute) {
+                final MediaPlayer clickSound = MediaPlayer.create(getBaseContext(), R.raw.error);
+                clickSound.start();
+                clickSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    public void onCompletion(MediaPlayer mp) {
+                        clickSound.release();
+                    }
+                });
+            }
             return;
         }
-
-        final MediaPlayer wooshSound = MediaPlayer.create(getBaseContext(), R.raw.woosh);
-        wooshSound.start();
-        wooshSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            public void onCompletion(MediaPlayer mp) {
-                wooshSound.release();
-            }
-        });
+        if (!mute) {
+            final MediaPlayer wooshSound = MediaPlayer.create(getBaseContext(), R.raw.woosh);
+            wooshSound.start();
+            wooshSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                public void onCompletion(MediaPlayer mp) {
+                    wooshSound.release();
+                }
+            });
+        }
 
         if (hasFlag[row][column]) {
             v.setImageResource(R.drawable.question_mark);
@@ -211,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
 
                 if (revealNeighbors(row, column))
                     ;
-                else if (revealOnClik)
+                else if (revealOnClick)
                     reveal(row, column);
                 else
                     flag(row, column);
@@ -224,7 +234,7 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
 
                 if (revealNeighbors(row, column))
                     ;
-                else if (revealOnClik)
+                else if (revealOnClick)
                     flag(row, column);
                 else
                     reveal(row, column);
@@ -297,9 +307,9 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         replay.getLayoutParams().width = screenWidth / 5;
         replay.getLayoutParams().height = screenWidth / 5;
 
-        ImageButton settings = (ImageButton) findViewById(R.id.settings);
-        settings.getLayoutParams().width = screenWidth / 5;
-        settings.getLayoutParams().height = screenWidth / 5;
+        ImageButton audio = (ImageButton) findViewById(R.id.audio);
+        audio.getLayoutParams().width = screenWidth / 5;
+        audio.getLayoutParams().height = screenWidth / 5;
 
         ImageButton hint = (ImageButton) findViewById(R.id.hint);
         hint.getLayoutParams().width = screenWidth / 5;
@@ -311,32 +321,44 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
             @Override
             public void onClick(View v) {
                 FragmentManager manager = getSupportFragmentManager();
-                MyDialogFragment dialog = new MyDialogFragment();
+                DifficultyDialog dialog = new DifficultyDialog();
                 dialog.setCancelable(true);
                 dialog.show(manager, "On Click");
             }
         });
 
-        /* On click click icon. */
+        /* On click reveal icon. */
         findViewById(R.id.clickIcon).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (revealOnClik) {
-                    revealOnClik = false;
+                if (revealOnClick) {
+                    revealOnClick = false;
                     ((ImageButton) v).setImageResource(R.drawable.flag_icon);
                 } else {
-                    revealOnClik = true;
+                    revealOnClick = true;
                     ((ImageButton) v).setImageResource(R.drawable.icon);
                 }
 
             }
         });
 
-
+        /* On click settings button. */
+        findViewById(R.id.audio).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mute) {
+                    ((ImageButton) v).setImageResource(R.drawable.audio);
+                    mute = false;
+                } else {
+                    ((ImageButton) v).setImageResource(R.drawable.mute);
+                    mute = true;
+                }
+            }
+        });
 
         /* Pop up the start dialog. */
         FragmentManager manager = getSupportFragmentManager();
-        MyDialogFragment dialog = new MyDialogFragment();
+        DifficultyDialog dialog = new DifficultyDialog();
         dialog.setCancelable(false);
         dialog.show(manager, "Initial");
     }
@@ -429,6 +451,5 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
     }
 }
 
-// TODO: 09/06/2016  Add sound control
 // TODO: 25/04/2016  Scoring and leaderboard
 // TODO: 25/04/2016  Create a smart BOT and give it a remarkable name
