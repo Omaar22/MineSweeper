@@ -78,7 +78,7 @@
             android:layout_centerHorizontal="true"
             android:layout_centerInParent="true"
             android:scaleType="fitXY"
-            android:src="@drawable/hint" />
+            android:src="@drawable/hint_button" />
 
         <ImageButton
             android:id="@+id/audio"

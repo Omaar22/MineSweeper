@@ -15,6 +15,7 @@ import android.widget.Chronometer;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.util.Random;
 
@@ -57,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements DifficultyDialog.
                     for (int k = 0; k < 8; k++) {
                         int X = i + deltaXY[k][0];
                         int Y = j + deltaXY[k][1];
-                        if (0 <= X && X < GRID_SIZE / COLUMN_COUNT && 0 <= Y && Y < COLUMN_COUNT && hasMine[X][Y])
+                        if (0 <= X && X < ROW_COUNT && 0 <= Y && Y < COLUMN_COUNT && hasMine[X][Y])
                             neighbours++;
                     }
                     neighbors[i][j] = neighbours;
@@ -284,7 +285,7 @@ public class MainActivity extends AppCompatActivity implements DifficultyDialog.
 
         /* Start the chronometer. */
         Chronometer timer = (Chronometer) findViewById(R.id.chronometer);
-        timer.setTextSize(TypedValue.COMPLEX_UNIT_PX, screenWidth / 7);
+        timer.setTextSize(TypedValue.COMPLEX_UNIT_PX, (int) (screenWidth / 8.5));
 
         /* Setting up the smiley face. */
         ImageView smiley = (ImageView) findViewById(R.id.smiley);
@@ -353,6 +354,26 @@ public class MainActivity extends AppCompatActivity implements DifficultyDialog.
                     ((ImageButton) v).setImageResource(R.drawable.mute);
                     mute = true;
                 }
+            }
+        });
+
+        /* On click hint_button button. */
+        findViewById(R.id.hint).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Agent myBot = new Agent(GRID_SIZE, COLUMN_COUNT, isRevealed, neighbors);
+                int index = myBot.nextMove();
+
+                Log.d("Omar", "onClick: " + index);
+
+                if (index != -1) {
+                    GridView grid = (GridView) findViewById(R.id.grid);
+                    ImageView cell = (ImageView) grid.getChildAt(index);
+                    cell.setImageResource(R.drawable.hint_field);
+                } else {
+                    Toast.makeText(getBaseContext(), "Help Yourself!!", Toast.LENGTH_LONG).show();
+                }
+
             }
         });
 
