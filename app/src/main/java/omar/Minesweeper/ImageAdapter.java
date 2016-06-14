@@ -21,14 +21,16 @@ public class ImageAdapter extends BaseAdapter {
             R.drawable.number_8,
     };
     private Context mContext;
+    Game myGame;
 
-    public ImageAdapter(Context c) {
+    public ImageAdapter(Context c, Game myGame) {
         mContext = c;
+        this.myGame = myGame;
     }
 
     @Override
     public int getCount() {
-        return MainActivity.GRID_SIZE;
+        return myGame.GRID_SIZE;
     }
 
     @Override
@@ -51,25 +53,25 @@ public class ImageAdapter extends BaseAdapter {
             final int screenWidth = mContext.getResources().getDisplayMetrics().widthPixels - 64; // padding 32
             final int screenHeight = mContext.getResources().getDisplayMetrics().heightPixels - 64; // padding 32
 
-            imageView.setLayoutParams(new GridView.LayoutParams(screenWidth / (MainActivity.COLUMN_COUNT),
-                    (screenHeight - (screenWidth / 5) * 2 - 64) / (MainActivity.ROW_COUNT ))); // height - smiley size - grid padding
+            imageView.setLayoutParams(new GridView.LayoutParams(screenWidth / (myGame.COLUMN_COUNT),
+                    (screenHeight - (screenWidth / 5) * 2 - 64) / (myGame.ROW_COUNT))); // height - smiley size - grid padding
             imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
             imageView.setImageResource(R.drawable.field);
         } else {
             // recycled by scrolling or keyboard appearance
             imageView = (ImageView) convertView;
-            int row = position / MainActivity.COLUMN_COUNT;
-            int column = position % MainActivity.COLUMN_COUNT;
+            int row = position / myGame.COLUMN_COUNT;
+            int column = position % myGame.COLUMN_COUNT;
 
-            if (MainActivity.isRevealed[row][column]) {
-                if (MainActivity.hasMine[row][column])
+            if (myGame.isRevealed[row][column]) {
+                if (myGame.hasMine[row][column])
                     imageView.setImageResource(R.drawable.mine);
                 else
-                    imageView.setImageResource(numbers[MainActivity.neighbors[row][column]]);
+                    imageView.setImageResource(numbers[myGame.neighbors[row][column]]);
             } else {
-                if (MainActivity.hasFlag[row][column])
+                if (myGame.hasFlag[row][column])
                     imageView.setImageResource(R.drawable.flag);
-                else if (MainActivity.hasQuestionMark[row][column])
+                else if (myGame.hasQuestionMark[row][column])
                     imageView.setImageResource(R.drawable.question_mark);
                 else
                     imageView.setImageResource(R.drawable.field);
