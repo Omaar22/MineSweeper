@@ -151,9 +151,9 @@ public class MainActivity extends AppCompatActivity implements DifficultyDialog.
                             public void run() {
                                 // Actions to do after 1 second
                                 if (!myGame.isRevealed[index / myGame.COLUMN_COUNT][index % myGame.COLUMN_COUNT])
-                                    cell.setImageResource(R.drawable.field);
+                                    myGame.reveal(index / myGame.COLUMN_COUNT, index % myGame.COLUMN_COUNT);
                             }
-                        }, 2000);
+                        }, 200);
                     } else {
                         Toast.makeText(getBaseContext(), "Help Yourself!!", Toast.LENGTH_LONG).show();
                     }
